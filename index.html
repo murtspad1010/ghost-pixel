@@ -3,207 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOST-PIXEL | Hidden in Plain Sight</title>
+    <title>CLIP-SEND // No-Fuss Recorder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700&display=swap');
-        
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #0a0a0a; 
-            color: white;
-            overflow-x: hidden;
-        }
-
-        .bento-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            transition: all 0.3s ease;
-        }
-
-        .bento-card:hover {
-            border-color: #6366f1;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .glow-text {
-            text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
-        }
-
-        .gradient-btn {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-        }
+        body { background-color: #f4f4f4; color: #1a1a1a; font-family: 'Courier New', Courier, monospace; }
+        .brutalist-border { border: 4px solid #1a1a1a; box-shadow: 8px 8px 0px #1a1a1a; }
+        .brutalist-btn { transition: all 0.1s; border: 3px solid #1a1a1a; box-shadow: 4px 4px 0px #1a1a1a; }
+        .brutalist-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #1a1a1a; }
+        .recording-pulse { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="min-h-screen flex flex-col p-6">
 
-    <!-- LANDING PAGE NAVIGATION -->
-    <nav class="max-w-6xl mx-auto flex justify-between items-center mb-16">
-        <div class="text-xl font-bold tracking-tighter italic">GHOST-PIXEL</div>
-        <div class="hidden md:flex gap-8 text-sm text-gray-400">
-            <span>Encrypted</span>
-            <span>Serverless</span>
-            <span>Private</span>
-        </div>
+    <!-- NAV -->
+    <nav class="flex justify-between items-center mb-12">
+        <span class="font-black text-2xl tracking-tighter bg-yellow-300 px-2 border-2 border-black">CLIP-SEND</span>
+        <span class="text-sm font-bold">V.1.0 // OPEN_SOURCE</span>
     </nav>
 
-    <!-- HERO SECTION -->
-    <header class="max-w-4xl mx-auto text-center mb-20">
-        <h1 class="text-6xl md:text-8xl font-bold mb-6 tracking-tight">
-            Hide it in <span class="text-indigo-500 glow-text">Pixels.</span>
-        </h1>
-        <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
-            The world's most elegant steganography tool. Embed encrypted text within images without changing how they look.
-        </p>
-    </header>
+    <!-- HERO -->
+    <main class="flex-grow flex flex-col items-center justify-center text-center">
+        <div class="max-w-2xl">
+            <h1 class="text-5xl md:text-7xl font-black uppercase mb-6 leading-none">
+                Record anything. <br><span class="bg-indigo-500 text-white p-1">Right now.</span>
+            </h1>
+            <p class="text-lg mb-10 font-bold border-l-4 border-black pl-4 text-left">
+                No extensions. No cloud storage. No "Sign up to download." 
+                A browser-based screen recorder for people who just want to get work done.
+            </p>
 
-    <!-- MAIN APP INTERFACE -->
-    <main class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6">
-        
-        <!-- ENCODE SECTION (HIDE) -->
-        <div class="md:col-span-7 bento-card p-8">
-            <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                <span class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">↓</span> Hide a Secret
-            </h3>
-            <div class="space-y-4">
-                <label class="block border-2 border-dashed border-gray-700 rounded-2xl p-8 text-center cursor-pointer hover:border-indigo-500 transition">
-                    <input type="file" id="upload-img" accept="image/*" class="hidden">
-                    <p id="upload-status" class="text-gray-500">Drop an image here or click to browse</p>
-                </label>
-                
-                <textarea id="secret-msg" placeholder="Type your secret message here..." 
-                    class="w-full bg-black/40 border border-gray-800 rounded-xl p-4 h-32 focus:ring-2 ring-indigo-500 outline-none resize-none"></textarea>
-                
-                <button onclick="encodeImage()" class="w-full gradient-btn text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/20">
-                    Process & Download Image
-                </button>
+            <!-- APP BOX -->
+            <div class="brutalist-border bg-white p-8 mb-8">
+                <div id="status-tag" class="inline-block bg-gray-200 px-3 py-1 text-xs font-bold mb-4 border border-black uppercase">
+                    Status: Ready to Capture
+                </div>
+
+                <div class="relative bg-black w-full aspect-video mb-6 flex items-center justify-center overflow-hidden">
+                    <video id="preview" autoplay muted class="w-full h-full object-cover"></video>
+                    <div id="idle-msg" class="absolute text-white font-bold opacity-50">PREVIEW_OFFLINE</div>
+                </div>
+
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <button id="start-btn" onclick="startCapture()" class="brutalist-btn bg-green-400 px-8 py-3 font-black uppercase hover:bg-green-500">
+                        Start Recording
+                    </button>
+                    <button id="stop-btn" onclick="stopCapture()" disabled class="brutalist-btn bg-red-500 text-white px-8 py-3 font-black uppercase opacity-50 cursor-not-allowed">
+                        Stop & Save
+                    </button>
+                </div>
             </div>
+            
+            <p class="text-xs font-bold text-gray-500 italic">
+                *Privacy Note: Everything happens in your browser. We never see your video.
+            </p>
         </div>
-
-        <!-- DECODE SECTION (REVEAL) -->
-        <div class="md:col-span-5 bento-card p-8 flex flex-col justify-between">
-            <div>
-                <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <span class="p-2 bg-purple-500/20 rounded-lg text-purple-400">↑</span> Reveal Secret
-                </h3>
-                <p class="text-gray-500 text-sm mb-6">Upload a Ghost-Pixel image to extract the hidden data.</p>
-                
-                <label class="block border border-gray-800 bg-black/20 rounded-xl p-4 text-center cursor-pointer hover:bg-black/40 mb-4">
-                    <input type="file" id="decode-img" accept="image/*" class="hidden">
-                    <span class="text-sm">Choose Encoded File</span>
-                </label>
-            </div>
-
-            <div id="decoded-msg-box" class="hidden mt-4 p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl">
-                <p class="text-xs uppercase text-indigo-400 font-bold mb-2">Message Found:</p>
-                <p id="decoded-text" class="text-white break-all"></p>
-            </div>
-        </div>
-
     </main>
 
-    <footer class="mt-20 text-center text-gray-600 text-xs tracking-widest uppercase">
-        Zero Data Logging • Client-Side Processing • Ghost-Pixel Engine v1.0
+    <!-- FOOTER -->
+    <footer class="mt-20 py-8 border-t-4 border-black flex justify-between items-center">
+        <div class="font-bold uppercase">© 2024 CLIP-SEND</div>
+        <div class="font-bold uppercase tracking-widest text-pink-600">MADE WITH LOVE</div>
     </footer>
 
-    <!-- LOGIC -->
-    <canvas id="canvas" class="hidden"></canvas>
-
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        let mediaRecorder;
+        let recordedChunks = [];
+        const videoPreview = document.getElementById('preview');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const statusTag = document.getElementById('status-tag');
+        const idleMsg = document.getElementById('idle-msg');
 
-        // HELPER: Upload status feedback
-        document.getElementById('upload-img').onchange = e => {
-            document.getElementById('upload-status').innerText = e.target.files[0].name;
-        };
+        async function startCapture() {
+            try {
+                // Request Screen + Audio
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { cursor: "always" },
+                    audio: true
+                });
 
-        // 1. ENCODE LOGIC (The "Hide" Function)
-        function encodeImage() {
-            const fileInput = document.getElementById('upload-img');
-            const message = document.getElementById('secret-msg').value;
-            
-            if (!fileInput.files[0] || !message) return alert("Upload an image and write a message!");
+                videoPreview.srcObject = stream;
+                idleMsg.classList.add('hidden');
+                
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
 
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-
-                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const data = imgData.data;
-
-                    // Add a signature and length to the message
-                    const secret = "@@" + message + "##"; 
-                    let binaryMsg = "";
-                    for (let i = 0; i < secret.length; i++) {
-                        let bin = secret[i].charCodeAt(0).toString(2);
-                        binaryMsg += bin.padStart(8, '0');
-                    }
-
-                    // Loop through pixels and modify the Least Significant Bit (LSB)
-                    for (let i = 0; i < binaryMsg.length; i++) {
-                        data[i * 4] = (data[i * 4] & 0xFE) | parseInt(binaryMsg[i]);
-                    }
-
-                    ctx.putImageData(imgData, 0, 0);
-                    
-                    // Trigger download
-                    const link = document.createElement('a');
-                    link.download = 'encoded-image.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
                 };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(fileInput.files[0]);
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: "video/webm" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `clip-${Date.now()}.webm`;
+                    a.click();
+                    
+                    // Reset UI
+                    statusTag.innerText = "Status: Downloaded";
+                    statusTag.classList.remove('bg-red-500', 'text-white', 'recording-pulse');
+                };
+
+                mediaRecorder.start();
+
+                // UI Updates
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50');
+                stopBtn.disabled = false;
+                stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                statusTag.innerText = "Status: 🔴 RECORDING LIVE";
+                statusTag.classList.add('bg-red-500', 'text-white', 'recording-pulse');
+
+            } catch (err) {
+                console.error("Error: " + err);
+                alert("Permission denied or browser not supported.");
+            }
         }
 
-        // 2. DECODE LOGIC (The "Seek" Function)
-        document.getElementById('decode-img').onchange = (e) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-
-                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const data = imgData.data;
-
-                    let binaryMsg = "";
-                    for (let i = 0; i < data.length; i += 4) {
-                        binaryMsg += (data[i] & 1).toString();
-                    }
-
-                    let msg = "";
-                    for (let i = 0; i < binaryMsg.length; i += 8) {
-                        let charCode = parseInt(binaryMsg.substr(i, 8), 2);
-                        msg += String.fromCharCode(charCode);
-                    }
-
-                    // Extract text between markers @@ and ##
-                    const start = msg.indexOf("@@");
-                    const end = msg.indexOf("##");
-                    
-                    if (start !== -1 && end !== -1) {
-                        const finalMsg = msg.substring(start + 2, end);
-                        document.getElementById('decoded-text').innerText = finalMsg;
-                        document.getElementById('decoded-msg-box').classList.remove('hidden');
-                    } else {
-                        alert("No hidden message found in this image.");
-                    }
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        };
+        function stopCapture() {
+            mediaRecorder.stop();
+            videoPreview.srcObject.getTracks().forEach(track => track.stop());
+            
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50');
+            stopBtn.disabled = true;
+            stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
     </script>
 </body>
 </html>
